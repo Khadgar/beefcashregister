@@ -2,7 +2,7 @@ var path = require('path');
 var ejs = require('ejs');
 var fs = require('fs');
 
-module.exports = function (app, passport, UserDetails, io) {
+module.exports = function (app, passport, UserDetails,Penzfelvetel, io) {
 
 	var profilecontent = fs.readFileSync(path.join(__dirname, '../views/profile.html'), 'utf-8');
 	var profilecompiled = ejs.compile(profilecontent);
@@ -75,10 +75,42 @@ module.exports = function (app, passport, UserDetails, io) {
 		});
 
 	});
+	
+	
 
 	io.on('connection', function (socket) {
 		console.log('a user connected');
+		
+		socket.on('message', function (msg) {
+			console.log('message: ' + msg);
+				UserDetails.find({})
+				.select('username fullname')
+				.exec(function(err, users) {
+						console.log(users);
+						io.emit('users',users)
+				});
+		});
 
+		socket.on('tartozasok', function (msg) {
+			console.log('message: ' + msg);
+				Penzfelvetel.find({'targetuser': msg})
+				.select('targetuser mennyit')
+				.exec(function(err, tartozas) {
+						console.log(tartozas);
+						//a tartozasok osszegzese egy listaba
+						var sum = []
+						for(var i=0;i<tartozas.length;i++){
+							sum = sum.concat(tartozas[i]['mennyit'])
+						}
+						//null elemek eltavolitasa
+						sum = sum.filter(function(n){ return n != undefined });				
+						//egy userhez tartozo osszes tartozas tovabbkuldese
+						io.emit('tartozas',sum)
+				});
+		});		
+		
+		
+		
 
 		socket.on('disconnect', function () {
 			console.log('user disconnected');
@@ -140,6 +172,26 @@ module.exports = function (app, passport, UserDetails, io) {
 			});
 		});
 	});
+	
+	app.post('/settartozas', function (req, res) {
+		console.log(req.body)
+		var tartozas = {
+			targetuser : req.body.username,
+			mikor      : req.body.date,
+			mennyit    : req.body.mennyit,
+			mire       : req.body.mire
+		};
+		var ujtartozas = new Penzfelvetel(tartozas);
+		ujtartozas.save()
+
+		res.redirect('/penzfelvetel');
+
+	});
+	
+	
+	
+	
+	
 	
 	app.get('/penzelszamolas', isAuthenticated, function (req, res, next) {
 	

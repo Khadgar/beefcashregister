@@ -29,11 +29,14 @@ mongoose.connect('mongodb://dani:dani@ds027491.mongolab.com:27491/beefdatabase')
 //user model in user.js
 var UserDetails = require(path.join(__dirname, './models/user.js'))(mongoose);
 
+//penzfelvetel model in penzfelvetel.js
+var Penzfelvetel = require(path.join(__dirname, './models/penzfelvetel.js'))(mongoose);
+
 //authentication in auth.js
 require(path.join(__dirname, './auth.js'))(passport, LocalStrategy, UserDetails);
 
 //routing in routes.js
-require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,io);
+require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,Penzfelvetel,io);
 
 
 //create server
