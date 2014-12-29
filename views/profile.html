@@ -13,9 +13,58 @@
     <!-- Bootstrap core CSS -->
     <link href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
-  </head>
+  	<style>
+	.span4{
+		background-color:white;
+	}
 
+	.keret{
+		border:solid 1px black;
+	}
+	
+	.userbtn{
+		white-space:normal !important;
+		max-width:100px;
+		min-width:100px;
+		max-height:100px;
+		min-height:100px;
+	}
+	
+	.text-warning {
+		color: @warningText;
+	}
+	
+	#tartozasform label.error {
+		margin-left: 10px;
+		width: auto;
+		display: inline;
+	}
+	</style>
+  
+  
+  
+  </head>
+  <script>
+  	
+	var socket = io(); 
+	socket.emit('i_am_personal_page'); 
+	
+	socket.on('tartozasod', function (msg) {
+	
+		console.log(msg);
+		document.getElementById('tetelwrapper').innerHTML=""
+		for(var i=0;i<msg.length;i++){
+			var newspan = document.createElement('span');					
+			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['mikor']+'" onclick = adduser("'+msg[i]['username']+'")  \/>';
+			document.getElementById('tetelwrapper').appendChild(newspan);
+
+		}
+	});
+	 
+	
+  </script>
   <body>
 
     <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -33,7 +82,6 @@
           <ul class="nav navbar-nav">
             <li class="active"><a href="/personal"><%= username %></a></li>
 			<li><a href="/penzfelvetel">Pénzfelvétel</a></li>
-			<li><a href="/penzelszamolas">Pénzelszámolás</a></li>
 			<li><a href="/admin">Adminisztráció</a></li>		
 			<li><a href="/logout">Kijelentkezés</a></li>				
           </ul>
@@ -48,9 +96,19 @@
 		<p>Profil oldal egyedi tartalommal.</p>
       </div>
     </div>
-
-    <div class="container">
-
-    </div> <!-- /container -->
+  <div class="container">
+     <div class="row row-centered">
+      <div class="col-xs-6 col-centered col-max">
+	   <h2 class="sub-header">Tételeim</h2>
+	 
+	   <div id="tetelwrapper"> 
+	   &nbsp;
+	   </div>
+	  </div>
+	  <div class="col-xs-6 col-centered col-max keret">
+		<h2 class="sub-header">Tétel Rendezése</h2>
+      </div>
+    </div>
+ </div>
   </body>
 </html>

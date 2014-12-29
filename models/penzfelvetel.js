@@ -6,7 +6,9 @@ var Penzfelvetel = new Schema({
 		targetuser : String,
 		mikor      : String,
 		mennyit    : [Number],
-		mire	   : [String]
+		mire	   : [String],
+		teljesites : [Number],
+		summa	   : Number
 	}, {
 		collection : 'penzfelvetel'
 	});

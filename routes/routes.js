@@ -87,29 +87,28 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel, io) {
 				.select('username fullname')
 				.exec(function(err, users) {
 						console.log(users);
-						io.emit('users',users)
+						//socket.emit csak a kuldonek valaszol. io.emit valaszol mindenkinek.
+						socket.emit('users',users)
 				});
 		});
 
 		socket.on('tartozasok', function (msg) {
 			console.log('message: ' + msg);
 				Penzfelvetel.find({'targetuser': msg})
-				.select('targetuser mennyit')
+				.select('targetuser summa')
 				.exec(function(err, tartozas) {
 						console.log(tartozas);
 						//a tartozasok osszegzese egy listaba
 						var sum = []
 						for(var i=0;i<tartozas.length;i++){
-							sum = sum.concat(tartozas[i]['mennyit'])
-						}
-						//null elemek eltavolitasa
-						sum = sum.filter(function(n){ return n != undefined });				
+							sum = sum.concat(tartozas[i]['summa'])
+						}	
 						//egy userhez tartozo osszes tartozas tovabbkuldese
-						io.emit('tartozas',sum)
+						socket.emit('tartozas',sum)
 				});
-		});		
+		});	
 		
-		
+
 		
 
 		socket.on('disconnect', function () {
@@ -145,7 +144,43 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel, io) {
 				username : user.fullname
 			}));
 		});
+		
+		var d;
+
+		
+		console.log('adat: '+d);
+		//valahogy csak annak a kliensnek kellene kuldeni aki kérte az adatot. más abbol ne kapjon semmit.
+		
+		var id;
+		io.sockets.on('connection', function(socket) {
+		  socket.on('i_am_personal_page', function(data) {
+		  id = socket.id;
+		  getResult(function (data) {
+			
+			console.log("post: " + data);
+			});
+	
+			console.log('message: ' + data);
+
+			
+		  });
+		  
+		socket.on('disconnect', function () {
+			console.log('user disconnected');
+		});
+		});
+
 	});
+		
+	function getResult(callback) {
+		
+		Penzfelvetel.find({targetuser:req.user.username})
+		.select('targetuser mikor')
+		.exec(function(err, d) {
+		callback(d)
+		});	
+	};
+	
 	
 	app.get('/penzfelvetel', isAuthenticated, function (req, res, next) {
 		process.nextTick(function () {
@@ -175,11 +210,33 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel, io) {
 	
 	app.post('/settartozas', function (req, res) {
 		console.log(req.body)
+		var total = 0;
+		if (Array.isArray(req.body.mennyit)){
+			var osszeg = req.body.mennyit;
+		}else{
+			var osszeg = [req.body.mennyit];
+		}
+		if (Array.isArray(req.body.mire)){
+			var jogcim = req.body.mire;
+		}else{
+			var jogcim = [req.body.mire];
+		}
+		
+		osszeg = osszeg.filter(Number)
+		jogcim = jogcim.filter(function(e){return e}); 
+		console.log(osszeg);
+		var teljesitve = new Array(osszeg.length);
+		for(var i=0;i<teljesitve.length;i++){
+		  teljesitve[i]=0;
+		}
+		for(var i in osszeg) { total += parseInt(osszeg[i]); }
 		var tartozas = {
 			targetuser : req.body.username,
 			mikor      : req.body.date,
-			mennyit    : req.body.mennyit,
-			mire       : req.body.mire
+			mennyit    : osszeg,
+			mire       : jogcim,
+			teljesites : teljesitve,
+			summa	   : total
 		};
 		var ujtartozas = new Penzfelvetel(tartozas);
 		ujtartozas.save()
@@ -187,10 +244,6 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel, io) {
 		res.redirect('/penzfelvetel');
 
 	});
-	
-	
-	
-	
 	
 	
 	app.get('/penzelszamolas', isAuthenticated, function (req, res, next) {

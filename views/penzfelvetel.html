@@ -18,6 +18,9 @@
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/css/datepicker3.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/js/bootstrap-datepicker.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/js/locales/bootstrap-datepicker.hu.js"></script>
+	<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.js"></script>
+
+	
 	<style>
 	.span4{
 		background-color:white;
@@ -38,6 +41,12 @@
 	.text-warning {
 		color: @warningText;
 	}
+	
+	#tartozasform label.error {
+		margin-left: 10px;
+		width: auto;
+		display: inline;
+	}
 	</style>
 
   </head>
@@ -53,6 +62,7 @@
 			var newspan = document.createElement('span');					
 			newspan.innerHTML ='<input type="button" id="userbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['fullname']+'" onclick = adduser("'+msg[i]['username']+'")  \/>';
 			document.getElementById('userwrapper').appendChild(newspan);
+
 		}
 	});
 
@@ -62,7 +72,7 @@
 			for(var i in msg) { total += msg[i]; }
 			document.getElementById('tartozasavan').innerHTML  =  total+"Ft tartozása már van!";
 		}else{
-			document.getElementById('tartozasavan').innerHTML  =  "&nbsp;";
+			document.getElementById('tartozasavan').innerHTML  =  "	";
 		}
 	});
 	
@@ -70,17 +80,43 @@
   	function adduser(username) {
 		document.getElementById('user').value =  username;
 		socket.emit('tartozasok',username);
+		
+		
+
 	}
-	
-	
-	
 	
 	function add_fields() {
+		
+
 		var newspan = document.createElement('span');					
-		newspan.innerHTML ='<br><input type="text" placeholder="Mennyit" name="mennyit"  class="form-control" /> - <input type="text" placeholder="Mire" name="mire"  class="form-control" />';
+		newspan.innerHTML ='<br><input type="text" placeholder="Mennyit" name="mennyit" class="form-control" id="mit_field" /> - <input type="text" placeholder="Mire" name="mire" class="form-control" id ="mire_field" />';
 		document.getElementById('wrapper').appendChild(newspan);
+		
 	}
+
+	$().ready(function() {
+		// validate the comment form when it is submitted
+		$("#tartozasform").validate({
+		
+		rules: {
+				username: "required",
+				date:"required"
+				},
+		messages: {
+				username:"*",
+				date:"*"
+			}
+		
+		});
+		});
+
+  </script>
+  
+  
+  <script>
+
 	
+
   </script>
 
   <body>
@@ -100,7 +136,6 @@
           <ul class="nav navbar-nav">
             <li><a href="/personal"><%= username %></a></li>
 			<li class="active"><a href="/penzfelvetel">Pénzfelvétel</a></li>
-			<li><a href="/penzelszamolas">Pénzelszámolás</a></li>
 			<li><a href="/admin">Adminisztráció</a></li>		
 			<li><a href="/logout">Kijelentkezés</a></li>				
           </ul>
@@ -123,13 +158,14 @@
 	  <div class="col-xs-6 col-centered col-max keret">
 		<h2 class="sub-header">Pénzfelvétel</h2>
 		<h3 class="text-warning" id = "tartozasavan">&nbsp;</h3>
-			<form class="form-inline" role="form" action="/settartozas" method="post">
-			<div class="form-group">
-              <input type="text" placeholder="Felhasználónév" class="form-control" name="username" id = "user">
+			<form class="form-inline" role="form" action="/settartozas" method="post" id="tartozasform">
+			<fieldset>
+			<div class="form-group" id = "usernamefield">
+              <input type="text" placeholder="Felhasználónév" class="form-control" name="username" id = "user" >
 			  <br>
 			  <br>
 			<div class="input-group" id="sandbox-container">
-				<input type="text" placeholder="Dátum" class="form-control" name="date">
+				<input type="text" placeholder="Dátum" class="form-control" name="date" id= "datefield" >
 			</div>
 			<br>
 			<br>
@@ -141,8 +177,10 @@
 			</script>
 			<div class="form-group" id="room_fileds">
 				<div id="wrapper"> 
-					<input type="text" placeholder="Mennyit" name="mennyit" class="form-control"/> - 
-					<input type="text" placeholder="Mire" name="mire" class="form-control"/>
+				<span>
+					<input type="text" placeholder="Mennyit" name="mennyit" class="form-control" /> - 
+					<input type="text" placeholder="Mire" name="mire" class="form-control" />
+				</span>
 				</div>
 			</div>
             </div>
@@ -153,6 +191,7 @@
             <button type="submit" class="btn btn-success">Felvesz</button>
 			<br>
 			<br>
+			</fieldset>
           </form>
 		
       </div>
