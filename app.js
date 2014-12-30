@@ -11,7 +11,7 @@ var http = require('http').Server(app);
 var mongoose = require('mongoose');
 var io = require('socket.io')(http);
 
-
+rootKey ={}
 //configure the app
 app.set('port', process.env.PORT || 3000);
 app.use(express.cookieParser('dandroid'));
@@ -36,7 +36,7 @@ var Penzfelvetel = require(path.join(__dirname, './models/penzfelvetel.js'))(mon
 require(path.join(__dirname, './auth.js'))(passport, LocalStrategy, UserDetails);
 
 //routing in routes.js
-require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,Penzfelvetel,io);
+require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,Penzfelvetel,rootKey,io);
 
 
 //create server

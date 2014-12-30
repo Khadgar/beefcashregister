@@ -53,17 +53,20 @@
   
   <script>
 	var socket = io();
-	socket.emit('message', 'hello server kerem szepen a felhasznalokat');
 		
+	socket.emit('message', 'hello server kerem szepen a felhasznalokat');
+
 
 	socket.on('users', function (msg) {
 		console.log(msg);
+		document.getElementById('userwrapper').innerHTML =""
 		for(var i=0;i<msg.length;i++){
 			var newspan = document.createElement('span');					
 			newspan.innerHTML ='<input type="button" id="userbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['fullname']+'" onclick = adduser("'+msg[i]['username']+'")  \/>';
 			document.getElementById('userwrapper').appendChild(newspan);
 
 		}
+		
 	});
 
 	socket.on('tartozas', function (msg) {
@@ -80,9 +83,6 @@
   	function adduser(username) {
 		document.getElementById('user').value =  username;
 		socket.emit('tartozasok',username);
-		
-		
-
 	}
 	
 	function add_fields() {
