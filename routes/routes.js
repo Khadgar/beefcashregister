@@ -252,6 +252,16 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel,rootKey, io) 
 	});
 	
 	
+	app.post('/egyenlites', function (req, res) {
+		console.log(req.body)
+		
+
+		res.redirect('/personal');
+
+	});
+	
+	
+	
 	app.get('/loginFailure', function (req, res, next) {
 		res.redirect('/');
 	});

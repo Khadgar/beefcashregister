@@ -44,6 +44,12 @@
 		width: auto;
 		display: inline;
 	}
+	
+	.form-inline .form-control {
+		width: 256px;
+	}
+	
+	
 	</style>
   
   
@@ -95,11 +101,15 @@
 			<form class="form-inline" role="form" action="/egyenlites" method="post" id="egyenlitesform">
 			<fieldset>
 			<div class="form-group" id="room_fileds">
-
+			<input type="text" id="tartozasid" name="tartozas_id" class="form-control" readonly/>
+			<br>
+			<br>
 				<div id="wrapper"> 
 				<span>
-					<input type="text" placeholder="Mennyit" name="mennyit" class="form-control" /> - 
-					<input type="text" placeholder="Mire" name="mire" class="form-control" />
+					<input type="text" placeholder="Számlaszám" name="szamlaszam" class="form-control" /><br>
+					<input type="text" placeholder="Kiállító Cég Neve" name="kiallito" class="form-control" /><br>
+					<input type="text" placeholder="Összeg" name="osszeg" class="form-control" /><br> 
+					<input type="text" placeholder="Megjegyzés" name="megjegyzes" class="form-control" /><br>
 					<div class="input-group" id="sandbox-container"><input type="text" placeholder="Dátum" class="form-control" name="date" id= "datefield" ></div>
 					<script>$('#sandbox-container input').datepicker({language: "hu"});</script>
 
@@ -135,20 +145,23 @@
 	document.getElementById('tetelwrapper').innerHTML =""
 		for(var i=0;i<msg.length;i++){
 			var newspan = document.createElement('span');					
-			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['mikor']+' '+msg[i]['summa']+' FT" onclick = details("'+msg[i]['summa']+'")  \/>';
+			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['mikor']+' '+msg[i]['summa']+' FT" onclick = details("'+msg[i]['summa']+'","'+msg[i]['_id']+'")      \/>';
 			document.getElementById('tetelwrapper').appendChild(newspan);
 		}
 	});	
-	}, 1500);
+	}, 1000);
 	
-	function details(summa) {
+	function details(summa,tartozas_id) {
 		document.getElementById('summatartozas').innerHTML  =  summa;
+		document.getElementById('tartozasid').value  =  tartozas_id;
 	}
 	
 	function add_fields() {
 		var newspan = document.createElement('span');					
-		newspan.innerHTML ='<br><input type="text" placeholder="Mennyit" name="mennyit" class="form-control" id="mit_field" />'+
-						   '<input type="text" placeholder="Mire" name="mire" class="form-control" id ="mire_field" />'+
+		newspan.innerHTML ='<br><br><input type="text" placeholder="Számlaszám" name="szamlaszam" class="form-control" /><br>'+
+						   '<input type="text" placeholder="Kiállító Cég Neve" name="kiallito" class="form-control" /><br>'+
+						   '<input type="text" placeholder="Összeg" name="osszeg" class="form-control" /><br>'+
+						   '<input type="text" placeholder="Megjegyzés" name="megjegyzes" class="form-control" /><br>'+
 						   '<div class="input-group" id="sandbox-container"><input type="text" placeholder="Dátum" class="form-control" name="date" id= "datefield" ><\/div>'+
 						   '<script>$("#sandbox-container input").datepicker({language: "hu"});<\/script>';
 		document.getElementById('wrapper').appendChild(newspan);
