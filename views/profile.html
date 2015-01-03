@@ -7,7 +7,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-
     <title>BeefFarmer Pénztár - Profil</title>
 
     <!-- Bootstrap core CSS -->
@@ -48,12 +47,8 @@
 	.form-inline .form-control {
 		width: 256px;
 	}
-	
-	
 	</style>
-  
-  
-  
+
   </head>
 
   <body>
@@ -144,9 +139,17 @@
 	socket.on('tarozasaid', function (msg) {
 	document.getElementById('tetelwrapper').innerHTML =""
 		for(var i=0;i<msg.length;i++){
-			var newspan = document.createElement('span');					
-			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-default userbtn" value="'+msg[i]['mikor']+' '+msg[i]['summa']+' FT" onclick = details("'+msg[i]['summa']+'","'+msg[i]['_id']+'")      \/>';
+			var newspan = document.createElement('span');
+			if(parseInt(msg[i]['summa'])<0){
+			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-success userbtn disabled" value="'+msg[i]['mikor']+' +'+Math.abs(msg[i]['summa'])+' FT" onclick = details("'+msg[i]['summa']+'","'+msg[i]['_id']+'")      \/>';
+			document.getElementById('tetelwrapper').appendChild(newspan);			
+			}else if(parseInt(msg[i]['summa'])==0){
+			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-success userbtn disabled" value="'+msg[i]['mikor']+' '+msg[i]['summa']+' FT" onclick = details("'+msg[i]['summa']+'","'+msg[i]['_id']+'")      \/>';
+			document.getElementById('tetelwrapper').appendChild(newspan);			
+			}else{
+			newspan.innerHTML ='<input type="button" id="tetelbutton'+i+'" class="btn btn-danger userbtn" value="'+msg[i]['mikor']+' -'+msg[i]['summa']+' FT" onclick = details("'+msg[i]['summa']+'","'+msg[i]['_id']+'")      \/>';
 			document.getElementById('tetelwrapper').appendChild(newspan);
+			}
 		}
 	});	
 	}, 1000);
@@ -167,14 +170,6 @@
 		document.getElementById('wrapper').appendChild(newspan);
 		
 		$("#sandbox-container input").datepicker({language: "hu"});
-	
 	}
-	
-
-		 	
   </script>
-  
-  
-  
-  
 </html>

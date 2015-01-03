@@ -73,7 +73,13 @@
 		var total=0;
 		if(msg.length>0){
 			for(var i in msg) { total += msg[i]; }
-			document.getElementById('tartozasavan').innerHTML  =  total+"Ft tartozása már van!";
+			if(total<0){
+				document.getElementById('tartozasavan').innerHTML  =  Math.abs(total)+"Ft a pénztár tartozása";
+			}else if(total ==0){
+				document.getElementById('tartozasavan').innerHTML  =  "	";
+			}else{
+				document.getElementById('tartozasavan').innerHTML  =  total+"Ft tartozása van!";
+			}
 		}else{
 			document.getElementById('tartozasavan').innerHTML  =  "	";
 		}
@@ -157,7 +163,7 @@
 	  </div>
 	  <div class="col-xs-6 col-centered col-max keret">
 		<h2 class="sub-header">Pénzfelvétel</h2>
-		<h3 class="text-warning" id = "tartozasavan">&nbsp;</h3>
+		<h3 class="text-danger" id = "tartozasavan">&nbsp;</h3>
 			<form class="form-inline" role="form" action="/settartozas" method="post" id="tartozasform">
 			<fieldset>
 			<div class="form-group" id = "usernamefield">

@@ -2,7 +2,7 @@ var path = require('path');
 var ejs = require('ejs');
 var fs = require('fs');
 
-module.exports = function (app, passport, UserDetails,Penzfelvetel,rootKey, io) {
+module.exports = function (app, passport, UserDetails,Penzfelvetel,Egyenlites,rootKey, io) {
 
 	var profilecontent = fs.readFileSync(path.join(__dirname, '../views/profile.html'), 'utf-8');
 	var profilecompiled = ejs.compile(profilecontent);
@@ -254,10 +254,113 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel,rootKey, io) 
 	
 	app.post('/egyenlites', function (req, res) {
 		console.log(req.body)
-		
+		process.nextTick(function () {
+				Egyenlites.findOne({
+					tartozas_id : req.body.tartozas_id
+				}, function (error, egyenlit) {
+					if(!egyenlit){
+						var egyenlites = {
+							tartozas_id : req.body.tartozas_id,
+							username    : req.user.username,
+							szamlaszam  : req.body.szamlaszam,
+							cegnev      : req.body.kiallito,
+							osszeg      : req.body.osszeg,
+							megjegyzes  : req.body.megjegyzes,
+							teljesitve  : 0,
+							datum       : req.body.date
+						};
+							var tetel = new Egyenlites(egyenlites);
+							tetel.save();
+							
+						process.nextTick(function () {
+							Penzfelvetel.findOne({
+								_id : req.body.tartozas_id
+							}, function (error, tartozas) {
+							
+							if (Array.isArray(req.body.osszeg)){
+								var osszeg = req.body.osszeg;
+							}else{
+								var osszeg = [req.body.osszeg];
+							}
+							var total = 0;
+							for(var i in osszeg) { total += parseInt(osszeg[i]); }
+								tartozas.summa -= total;
+								if(tartozas.summa<=0){
+									tetel.teljesitve = 1;
+									tetel.save();
+								}
+								tartozas.save();
+							});
+						});
+					
+					}else{
+					//kiboviti a mar beszurt elemet
+						if (Array.isArray(req.body.szamlaszam)){
+							for (var i=0; i < req.body.szamlaszam.length; i++){
+								egyenlit.szamlaszam.push(req.body.szamlaszam[i])
+							}
+						}else{
+							egyenlit.szamlaszam.push(req.body.szamlaszam)
+						}
+						if (Array.isArray(req.body.kiallito)){
+							for (var i=0; i < req.body.kiallito.length; i++){
+							egyenlit.cegnev.push(req.body.kiallito[i])
+							}
+						}else{
+							egyenlit.cegnev.push(req.body.kiallito)
+						}
+						if (Array.isArray(req.body.osszeg)){
+							for (var i=0; i < req.body.osszeg.length; i++){
+								egyenlit.osszeg.push(req.body.osszeg[i])
+							}						
+						}else{
+							egyenlit.osszeg.push(req.body.osszeg)
+						}
+						if (Array.isArray(req.body.megjegyzes)){
+							for (var i=0; i < req.body.megjegyzes.length; i++){
+								egyenlit.megjegyzes.push(req.body.megjegyzes[i])
+							}						
+						}else{
+							egyenlit.megjegyzes.push(req.body.megjegyzes)
+						}
+						if (Array.isArray(req.body.date)){
+							for (var i=0; i < req.body.date.length; i++){
+								egyenlit.datum.push(req.body.date[i])
+							}
+						}else{
+							egyenlit.datum.push(req.body.date)
+						}
+						
+						
+						process.nextTick(function () {
+							Penzfelvetel.findOne({
+								_id : req.body.tartozas_id
+							}, function (error, tartozas) {
+							
+							if (Array.isArray(req.body.osszeg)){
+								var osszeg = req.body.osszeg;
+							}else{
+								var osszeg = [req.body.osszeg];
+							}
+							var total = 0;
+							for(var i in osszeg) { total += parseInt(osszeg[i]); }
+								tartozas.summa -= total;
+								if(tartozas.summa<=0){
+									egyenlit.teljesitve = 1;
+									egyenlit.save();
+								}
+								tartozas.save();
+							});
+						});	
+						
+						
+						egyenlit.save();
 
+					}
+					
+				});
+		});
 		res.redirect('/personal');
-
 	});
 	
 	

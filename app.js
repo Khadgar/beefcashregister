@@ -32,11 +32,14 @@ var UserDetails = require(path.join(__dirname, './models/user.js'))(mongoose);
 //penzfelvetel model in penzfelvetel.js
 var Penzfelvetel = require(path.join(__dirname, './models/penzfelvetel.js'))(mongoose);
 
+//egyenlites model in penzfelvetel.js
+var Egyenlites = require(path.join(__dirname, './models/egyenlites.js'))(mongoose);
+
 //authentication in auth.js
 require(path.join(__dirname, './auth.js'))(passport, LocalStrategy, UserDetails);
 
 //routing in routes.js
-require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,Penzfelvetel,rootKey,io);
+require(path.join(__dirname, './routes/routes.js'))(app,passport,UserDetails,Penzfelvetel,Egyenlites,rootKey,io);
 
 
 //create server
