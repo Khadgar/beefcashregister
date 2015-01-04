@@ -70,18 +70,12 @@
 	});
 
 	socket.on('tartozas', function (msg) {
-		var total=0;
-		if(msg.length>0){
-			for(var i in msg) { total += msg[i]; }
-			if(total<0){
-				document.getElementById('tartozasavan').innerHTML  =  Math.abs(total)+"Ft a pénztár tartozása";
-			}else if(total ==0){
-				document.getElementById('tartozasavan').innerHTML  =  "	";
-			}else{
-				document.getElementById('tartozasavan').innerHTML  =  total+"Ft tartozása van!";
-			}
+		if(msg==0){
+			document.getElementById("tartozasavan").className = "text-success";
+			document.getElementById('tartozasavan').innerHTML  =  "Nincs tartozása";
 		}else{
-			document.getElementById('tartozasavan').innerHTML  =  "	";
+			document.getElementById("tartozasavan").className = "text-danger";
+			document.getElementById('tartozasavan').innerHTML  =  msg+"db tartozása van!";
 		}
 	});
 	
@@ -91,26 +85,20 @@
 		socket.emit('tartozasok',username);
 	}
 	
-	function add_fields() {
-		
-
-		var newspan = document.createElement('span');					
-		newspan.innerHTML ='<br><input type="text" placeholder="Mennyit" name="mennyit" class="form-control" id="mit_field" /> - <input type="text" placeholder="Mire" name="mire" class="form-control" id ="mire_field" />';
-		document.getElementById('wrapper').appendChild(newspan);
-		
-	}
 
 	$().ready(function() {
 		// validate the comment form when it is submitted
 		$("#tartozasform").validate({
 		
 		rules: {
-				username: "required",
-				date:"required"
+				username : "required",
+				date     : "required",
+				mennyit  : "required"
 				},
 		messages: {
-				username:"*",
-				date:"*"
+				username :"*",
+				date     :"*",
+				mennyit  :"*"
 			}
 		
 		});
@@ -184,16 +172,13 @@
 			<div class="form-group" id="room_fileds">
 				<div id="wrapper"> 
 				<span>
-					<input type="text" placeholder="Mennyit" name="mennyit" class="form-control" /> - 
-					<input type="text" placeholder="Mire" name="mire" class="form-control" />
+					<input type="text" onkeypress='return event.charCode >= 48 && event.charCode <= 57' placeholder="Összeg" name="mennyit" class="form-control" />
 				</span>
 				</div>
 			</div>
             </div>
 			<br>
 			<br>
-			<input type="button" id="more_fields" onclick="add_fields();" value="Új" class="btn btn-default"/>
-			<br><br>
             <button type="submit" class="btn btn-success">Felvesz</button>
 			<br>
 			<br>

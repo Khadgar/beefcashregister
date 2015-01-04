@@ -17,6 +17,7 @@
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/css/datepicker3.css" />
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/js/bootstrap-datepicker.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.1/js/locales/bootstrap-datepicker.hu.js"></script>
+	<script src="http://ajax.aspnetcdn.com/ajax/jquery.validate/1.13.1/jquery.validate.js"></script>
   	<style>
 	.span4{
 		background-color:white;
@@ -48,8 +49,10 @@
 		width: 256px;
 	}
 	</style>
+	
 
   </head>
+  
 
   <body>
 
@@ -91,19 +94,15 @@
 	   </div>
 	  </div>
 	  <div class="col-xs-6 col-centered col-max keret">
-		<h2 class="sub-header">Tétel Rendezése</h2>
-			<h3 class="text-warning" id = "summatartozas">&nbsp;</h3>
-			<form class="form-inline" role="form" action="/egyenlites" method="post" id="egyenlitesform">
+	  	<form class="form-inline" role="form" action="/egyenlites" method="post" id="egyenlitesform">
+		<h2 class="sub-header">Tétel Rendezése <input type="text" id="tartozasid" name="tartozas_id" class="form-control pull-right" style="width: 200px;" /></h2>
 			<fieldset>
-			<div class="form-group" id="room_fileds">
-			<input type="text" id="tartozasid" name="tartozas_id" class="form-control" readonly/>
-			<br>
-			<br>
+			<div class="form-group" id="room_fileds" >
 				<div id="wrapper"> 
 				<span>
 					<input type="text" placeholder="Számlaszám" name="szamlaszam" class="form-control" /><br>
 					<input type="text" placeholder="Kiállító Cég Neve" name="kiallito" class="form-control" /><br>
-					<input type="text" placeholder="Összeg" name="osszeg" class="form-control" /><br> 
+					<input type="text" onkeypress='return event.charCode >= 48 && event.charCode <= 57' placeholder="Összeg" name="osszeg" class="form-control" /><br> 
 					<input type="text" placeholder="Megjegyzés" name="megjegyzes" class="form-control" /><br>
 					<div class="input-group" id="sandbox-container"><input type="text" placeholder="Dátum" class="form-control" name="date" id= "datefield" ></div>
 					<script>$('#sandbox-container input').datepicker({language: "hu"});</script>
@@ -120,10 +119,6 @@
 			<br>
 			</fieldset>
           </form>
-		
-		
-		
-		
       </div>
     </div>
  </div>
@@ -155,7 +150,6 @@
 	}, 1000);
 	
 	function details(summa,tartozas_id) {
-		document.getElementById('summatartozas').innerHTML  =  summa;
 		document.getElementById('tartozasid').value  =  tartozas_id;
 	}
 	
@@ -163,7 +157,7 @@
 		var newspan = document.createElement('span');					
 		newspan.innerHTML ='<br><br><input type="text" placeholder="Számlaszám" name="szamlaszam" class="form-control" /><br>'+
 						   '<input type="text" placeholder="Kiállító Cég Neve" name="kiallito" class="form-control" /><br>'+
-						   '<input type="text" placeholder="Összeg" name="osszeg" class="form-control" /><br>'+
+						   '<input type="text" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="Összeg" name="osszeg" class="form-control" /><br>'+
 						   '<input type="text" placeholder="Megjegyzés" name="megjegyzes" class="form-control" /><br>'+
 						   '<div class="input-group" id="sandbox-container"><input type="text" placeholder="Dátum" class="form-control" name="date" id= "datefield" ><\/div>'+
 						   '<script>$("#sandbox-container input").datepicker({language: "hu"});<\/script>';
@@ -171,5 +165,28 @@
 		
 		$("#sandbox-container input").datepicker({language: "hu"});
 	}
+	
+	//validation
+	$(document).on("focusin", "#tartozasid", function(event) {
+	  $(this).prop('readonly', true);
+	});
+
+	$(document).on("focusout", "#tartozasid", function(event) {
+	  $(this).prop('readonly', false);
+	});
+  
+  		$().ready(function() {
+		// validate the comment form when it is submitted
+		$("#egyenlitesform").validate({
+		rules: {
+				tartozas_id : "required"
+				},
+		messages: {
+				tartozas_id :"*"
+			}
+		});
+		});
+	
+	
   </script>
 </html>

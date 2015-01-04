@@ -1,6 +1,7 @@
 var path = require('path');
 var ejs = require('ejs');
 var fs = require('fs');
+var PDFDocument = require('pdfkit');
 
 module.exports = function (app, passport, UserDetails,Penzfelvetel,Egyenlites,rootKey, io) {
 
@@ -168,87 +169,65 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel,Egyenlites,ro
 				}
 			});
 			
-		io.on('connection', function (socket) {
-		console.log('a user connected');
-		console.log(io.sockets.connected);
-		socket.on('message', function (msg) {
-			console.log('message: ' + msg);
-				UserDetails.find({})
-				.select('username fullname')
-				.exec(function(err, users) {
-						console.log(users);
-						//socket.emit csak a kuldonek valaszol. io.emit valaszol mindenkinek.
-						socket.emit('users',users)
-						delete users;
-				});
-		});
+			io.on('connection', function (socket) {
+			console.log('a user connected');
+			console.log(io.sockets.connected);
+			socket.on('message', function (msg) {
+				console.log('message: ' + msg);
+					UserDetails.find({})
+					.select('username fullname')
+					.exec(function(err, users) {
+							console.log(users);
+							//socket.emit csak a kuldonek valaszol. io.emit valaszol mindenkinek.
+							socket.emit('users',users)
+							delete users;
+					});
+			});
 
-		socket.on('tartozasok', function (msg) {
-			console.log('message: ' + msg);
-			process.nextTick(function () {
-				Penzfelvetel.find({'targetuser': msg})
-				.select('targetuser summa')
-				.exec(function(err, tartozas) {
-						console.log(tartozas);
-						//a tartozasok osszegzese egy listaba
-						var sum = []
-						for(var i=0;i<tartozas.length;i++){
-							sum = sum.concat(tartozas[i]['summa'])
-						}	
-						//egy userhez tartozo osszes tartozas tovabbkuldese
-						socket.emit('tartozas',sum)
-						delete tartozas;
-				});
+			socket.on('tartozasok', function (msg) {
+				console.log('message: ' + msg);
+				
+				process.nextTick(function () {
+					Penzfelvetel.find({ 'targetuser': msg }).where('summa').gt(0).exec(function(err, tartozas) {
+					socket.emit('tartozas',tartozas.length)
+					});
+				});	
+			
 			});	
-		});	
-		
-			socket.on('disconnect', function() {
+			
+				socket.on('disconnect', function() {
+				});
 			});
 		});
-	});
-		
-		
-		
-
-			
 		
 	});
 	
 	app.post('/settartozas', function (req, res) {
-		console.log(req.body)
-		var total = 0;
-		if (Array.isArray(req.body.mennyit)){
+		
+		if(req.body.osszeg==''){
+			var osszeg='0';
+		}else{
 			var osszeg = req.body.mennyit;
-		}else{
-			var osszeg = [req.body.mennyit];
-		}
-		if (Array.isArray(req.body.mire)){
-			var jogcim = req.body.mire;
-		}else{
-			var jogcim = [req.body.mire];
 		}
 		
-		osszeg = osszeg.filter(Number)
-		jogcim = jogcim.filter(function(e){return e}); 
-		console.log(osszeg);
-		var teljesitve = new Array(osszeg.length);
-		for(var i=0;i<teljesitve.length;i++){
-		  teljesitve[i]=0;
-		}
-		for(var i in osszeg) { total += parseInt(osszeg[i]); }
-		var tartozas = {
-			targetuser : req.body.username,
-			mikor      : req.body.date,
-			mennyit    : osszeg,
-			mire       : jogcim,
-			teljesites : teljesitve,
-			summa	   : total
-		};
-		var ujtartozas = new Penzfelvetel(tartozas);
-		ujtartozas.save()
+		var total = osszeg;
+		
+		UserDetails.find({username:req.body.username}).select('fullname').exec(function(err, userfullname) {
+		
+			var tartozas = {
+				targetuser 			: req.body.username,
+				targetuser_fullname	: userfullname[0]['fullname'],
+				mikor     			: req.body.date,
+				mennyit    			: osszeg,
+				summa	   			: total
+			};
+			
+			var ujtartozas = new Penzfelvetel(tartozas);
+			ujtartozas.save()
+		
+		});
 
 		res.redirect('/penzfelvetel');
-
 	});
 	
 	
@@ -337,10 +316,16 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel,Egyenlites,ro
 								_id : req.body.tartozas_id
 							}, function (error, tartozas) {
 							
-							if (Array.isArray(req.body.osszeg)){
-								var osszeg = req.body.osszeg;
-							}else{
-								var osszeg = [req.body.osszeg];
+							//Bejovo NaN ertek ellenorzese. Ha nan jon be akkor 0
+							console.log('req.body.osszeg - '+req.body.osszeg)
+							if(req.body.osszeg==''){
+								var osszeg='0';
+							}else{ 
+								if (Array.isArray(req.body.osszeg)){
+									var osszeg = req.body.osszeg;
+								}else{
+									var osszeg = [req.body.osszeg];
+								}
 							}
 							var total = 0;
 							for(var i in osszeg) { total += parseInt(osszeg[i]); }
@@ -400,6 +385,46 @@ module.exports = function (app, passport, UserDetails,Penzfelvetel,Egyenlites,ro
 		});
 
 	});
+	
+	app.get('/kiktartoznak', function (req, res) {
+		//itt kellene a PDF letrehozast megcsinalni
+		
+
+		Penzfelvetel.find({}).where('summa').gt(0).exec(function(err, users) {
+			console.log(users);
+			var szoveg='';
+			doc = new PDFDocument();
+			doc.pipe( fs.createWriteStream(path.join(__dirname,'kiktartoznak.pdf')) );
+
+			for(var i=0;i<users.length;i++){
+				szoveg+='Név: '+users[i]['targetuser_fullname']+' Tartozása: '+users[i]['summa']+'\n';
+			}
+
+			console.log(szoveg);
+				
+			doc.fillColor('black').font('Helvetica', 20)
+			.text('BeefFarmer tartozások lista', { align: 'center' })
+		    .moveDown();
+			
+			doc.fillColor('black')
+			   .text(szoveg, {
+				   paragraphGap: 10,
+				   align: 'justify',
+			   });
+			doc.end();
+			
+			
+		});
+		
+
+
+
+		
+		res.download(path.join(__dirname,'kiktartoznak.pdf'));
+		
+	});
+	
+	
 	
 	app.get('/logout', function (req, res) {
 		req.logout();
